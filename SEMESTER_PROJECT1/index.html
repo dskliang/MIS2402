@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css">
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js"></script>
+        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js"></script>
+        <style> .btn{border:1px solid black; padding:5px;display:inline-block} 
+                body {background-image: url("mark-boss-nyc\ pic.jpg");
+                    background-size: 2000px 2000px;
+                }
+                div#WelcomePage {background: lightgray;
+                                position: absolute;
+                                height: 400px;
+                                width: 600px;
+                                top: 35%;
+                                left: 37%;
+                                font-family: sans-serif;
+                                line-height: 1.5;
+                }
+                div#APIbuttons {background: lightgray;
+                                position: absolute;
+                                height: 1800px;
+                                width: 950px;
+                                top: 0%;
+                                left: 28%;
+                                font-family: sans-serif;
+                                line-height: 1.5;
+
+                }
+                
+        </style>
+        
+    </head>
+    <body>
+        <div class="container">
+            <div id="WelcomePage" class="col-md-8" style="border-style:transparent"> <!--This is my "welcome" page -->
+                <h1>Welcome to David Liang's Semester Long Project</h1>
+                <p> Hello, this is my semester long project. I am using two APIs for this project: ImageCharts and the New York Active Tobacco Retail Dealer Licenses API. Here is the documentation for both APIs.<br>
+                    NYC OpenData : <a href="https://data.cityofnewyork.us/Business/Active-Tobacco-Retail-Dealer-Licenses/adw8-wvxb"> https://data.cityofnewyork.us/Business/Active-Tobacco-Retail-Dealer-Licenses/adw8-wvxb</a><br>
+                    ImageCharts : <a href="https://documentation.image-charts.com/"> https://documentation.image-charts.com/ </a><br>
+                </p>  
+                <form>
+                    <input type="button" value="Click here to see the charts" id="btn_1"> <!--This will hide after click and show multiple buttons to display charts-->
+                    <br><br>
+                </form>
+            </div>
+            <div id="APIbuttons" class="col-md-10" style="border-style:transparent;"> <!--This is my "Charts" page-->
+                <h1> Here are my charts!</h1> <br><br>
+                <form>
+                    <h2> Chart 1: Tobacco Licenses in NYC </h2>
+                    <p> Imagine you were a New York City official trying to see which borough was selling the most amount of tobacco products. <br>
+                        One way you could do this is by seeing and comparing which boroughs have the most amount of businesses with tobacco licenses. <br>
+                    </p><br>
+                    <label> <b> Click this button to see the distribution of tobacco licenses in NYC! </b> </label> <br>
+                    <input type="button" value="Tobacco Licenses in NYC" id="btn_2"><br><br>
+                    <div id="Chart1"></div><br>
+                    <div id="Chart1Explan">This is a pie chart about the the distribution of current tobacco licenses in the boroughs.</div> <br><br>
+                    
+                    <h2> Chart 2: Annual Tobacco License Distribution Rates </h2>
+                    <p> Imagine that you were a city official trying to see which boroughs are getting the most tobacco licenses per year.
+                        You might assume that all five boroughs of NYC are getting the same rate of tobacco licenses annually. You could also
+                        assume that maybe Brooklyn is seeing a downward trend in tobacco license acquisition every year.
+                    </p>
+                    <label> <b> Select a borough and then press the button to find out more! </b></label> <br>
+                    <select id="Boroughs">
+                        <option value="Brooklyn">Brooklyn</option>
+                        <option value="Bronx">Bronx</option>
+                        <option value="Queens">Queens</option>
+                        <option value="Manhattan">Manhattan</option>
+                        <option value="Staten Island">Staten Island</option>
+                    </select>
+                    <input type="button" value="Create my chart" id="btn_3"><br><br>
+                    <div id="Chart2"></div><br>
+                    <br><br><br>
+                    <input type="button" value="Return to beginning" id="btn_home">
+                    <br><br><br>
+
+                </form>
+
+            </div>
+        </div>
+    </body>
+
+    <script>
+
+    function GetBoroughData(){ //This function gets my data, sorts each business by borough, and then counts the total number of licenses per borough.
+            let Brooklyn = 0;
+            let Queens = 0;
+            let Manhattan = 0;
+            let Bronx = 0;
+            let Staten = 0;
+            let totalBData = 0;
+
+            $.getJSON("https://data.cityofnewyork.us/resource/adw8-wvxb.json",function(result){
+                console.log(result);
+                for(let i=0;i<result.length;i++){
+                    if(result[i]['address_borough'] == "Brooklyn"){
+                        Brooklyn = Brooklyn + 1;
+                    }
+                    else if(result[i]['address_borough'] == "Queens"){
+                        Queens = Queens + 1;  
+                    }
+                    else if(result[i]['address_borough'] == "Manhattan"){
+                        Manhattan = Manhattan + 1;
+                    }
+                    else if(result[i]['address_borough'] == "Bronx"){
+                        Bronx = Bronx + 1;
+                    }
+                    else if(result[i]['address_borough'] == "Staten Island"){
+                        Staten = Staten + 1;
+                    }
+                }
+                totalBData = Brooklyn + Queens + Manhattan + Bronx + Staten;
+                console.log(Brooklyn,Queens,Manhattan,Bronx,Staten,totalBData);
+                plotBoroughData(Brooklyn,Queens,Manhattan,Bronx,Staten,totalBData)
+            });
+    }
+
+    function plotBoroughData(Brooklyn,Queens,Manhattan,Bronx,Staten,totalBData){ // This function turns the data I got from the previous function and turns it into a chart. Unfortunately, the order of the inputs has to stay the same or else this function works incorrectly. 
+        let BrookSlice = Brooklyn/totalBData * 100;
+        let QueensSlice = Queens/totalBData * 100;
+        let ManhatSlice = Manhattan/totalBData * 100;
+        let BronxSlice = Bronx/totalBData * 100;
+        let StatenSlice = Staten/totalBData * 100;
+        let BrookLabel = "Brooklyn " + BrookSlice.toFixed(0) + "%";
+        let QueensLabel = "Queens " + QueensSlice.toFixed(0) + "%";
+        let ManhatLabel = "Manhattan " + ManhatSlice.toFixed(0) + "%";
+        let BronxLabel = "Bronx " + BronxSlice.toFixed(0) + "%";
+        let StatenLabel = "Staten Island " + StatenSlice.toFixed(0) + "%";
+
+        let imageurl = "https://image-charts.com/chart?cht=p3&";
+	        imageurl = imageurl + "chs=300x300&";
+	        imageurl = imageurl + "chd=t:" + Brooklyn + "," + Queens + "," + Manhattan + "," + Bronx + "," + Staten + "&";
+	        imageurl = imageurl + "chl=" + BrookLabel + "|" + QueensLabel + "|" + ManhatLabel + "|" + BronxLabel + "|" + StatenLabel + "&";
+	        imageurl = imageurl + "chlps=font.size,12";
+
+	    console.log(imageurl);
+        $("#Chart1").html("<img src='" + imageurl + "'>");
+    }
+
+    function sortDaBoro(){ // This function sorts the boroughs by most licenses, it uses my other two max and min sort functions and creates dynamic sentences that reflect the chart.
+            let Brooklyn = 0;
+            let Queens = 0;
+            let Manhattan = 0;
+            let Bronx = 0;
+            let Staten = 0;
+            $("#Chart1Explan").html("This is a pie chart about the the distribution of licenses in the boroughs.")
+
+            $.getJSON("https://data.cityofnewyork.us/resource/adw8-wvxb.json",function(result){
+                console.log(result);    
+                    for(let i=0;i<result.length;i++){
+                        if(result[i]['address_borough'] == "Bronx"){
+                            Bronx = Bronx + 1;
+                        }
+                        else if(result[i]['address_borough'] == "Brooklyn"){
+                            Brooklyn = Brooklyn + 1;
+                        }
+                        else if(result[i]['address_borough'] == "Queens"){
+                            Queens = Queens + 1;
+                        }
+                        else if(result[i]['address_borough'] == "Manhattan"){
+                            Manhattan = Manhattan + 1;
+                        }
+                        else if(result[i]['address_borough'] == "Staten Island"){
+                            Staten = Staten + 1;
+                        }
+                        }
+                        console.log(Brooklyn,Queens,Manhattan,Bronx,Staten);
+                        SortMaxBoro(Brooklyn,Queens,Manhattan,Bronx,Staten);
+                        SortMinBoro(Brooklyn,Queens,Manhattan,Bronx,Staten);
+            });
+    }
+
+    function SortMaxBoro(Brooklyn,Queens,Manhattan,Bronx,Staten){
+        let MaxPercentBoro = Brooklyn;
+        let maxBoro= "";
+            if(MaxPercentBoro<Queens){
+            maxBoro = 'Queens';
+            MaxPercentBoro = Queens;
+            }
+            if(MaxPercentBoro<Manhattan){
+                maxBoro = 'Manhattan';
+                MaxPercentBoro = Manhattan;
+            }
+            if(MaxPercentBoro<Bronx){
+                maxBoro = 'Bronx';
+                MaxPercentBoro = Bronx;
+            }
+            if(MaxPercentBoro<Staten){
+                maxBoro = 'Staten';
+                MaxPercentBoro = Staten;
+            }
+                console.log(maxBoro);
+                $("#Chart1Explan").append("<br>" + "As you can see, the borough with the highest percentage of tobacco licenses is " + maxBoro + "." + "<br>" + "This means that " + maxBoro + " has the most amount of businesses selling tobacco products in NYC.")
+            }
+    function SortMinBoro(Brooklyn,Queens,Manhattan,Bronx,Staten){
+        let MinPercentBoro = Brooklyn;
+        let minBoro= "";
+            if(MinPercentBoro>Queens){
+            minBoro = 'Queens';
+            MinPercentBoro = Queens;
+            }
+            if(MinPercentBoro>Manhattan){
+                minBoro = 'Manhattan';
+                MinPercentBoro = Manhattan;
+            }
+            if(MinPercentBoro>Bronx){
+                minBoro = 'Bronx';
+                MinPercentBoro = Bronx;
+            }
+            if(MinPercentBoro>Staten){
+                minBoro = 'Staten Island';
+                MinPercentBoro = Staten;
+            }
+                console.log(minBoro);
+                $("#Chart1Explan").append("<br>" + "Furthermore, the borough with the lowest percentage of tobacco licenses is " + minBoro + "." + "<br>" + "This means that the " + minBoro + " has the least amount of businesses selling tobacco products in NYC.")
+            }    
+        
+    function LicenseTrend(){ //Find the annual rate of licenses acquired by each borough
+        let boroOption = $("#Boroughs").val();
+        console.log(boroOption);
+        $.getJSON("https://data.cityofnewyork.us/resource/adw8-wvxb.json",function(result){
+            console.log(result);
+            
+            let licenseData = [];
+
+
+            for(let i=0;i<result.length;i++){
+                let item=[];
+                let date=new Date(result[i]["license_creation_date"]);
+
+                item[0]=date.getFullYear(Date)
+                item[1]=result[i]["address_borough"];
+
+
+                licenseData[i] = item;
+            }
+            licenseData.sort(function(pos1,pos2){
+                let c = new Date(pos1[0]);
+                let d = new Date(pos2[0]);
+                return c-d;
+            }); // Everything so far, sorts the licenses by creation year.
+            console.log(licenseData);
+
+            //I want to take the sorted years, and count how many licenses did Brooklyn get each year
+            let Borough00 = 0;
+            let total2000 = 0;
+            let Borough01 = 0;
+            let total2001 = 0;
+            let Borough02 = 0;
+            let total2002 = 0;
+            let Borough03 = 0;
+            let total2003 = 0;
+            let Borough04 = 0;
+            let total2004 = 0;
+            let Borough05 = 0;
+            let total2005 = 0;
+            let Borough06 = 0;
+            let total2006 = 0;
+            let Borough07 = 0;
+            let total2007 = 0;
+            let Borough08 = 0;
+            let total2008 = 0;
+            let Borough09 = 0;
+            let total2009 = 0;
+            let Borough10 = 0;
+            let total2010 = 0;
+            let Borough11 = 0;
+            let total2011 = 0;
+            let Borough12 = 0;
+            let total2012 = 0;
+            let total2013 = 0;
+            let Borough13 = 0;
+            let total2014 = 0;
+            let Borough14 = 0;
+            let total2015 = 0;
+            let Borough15 = 0;
+            let total2016 = 0;
+            let Borough16 = 0;
+            let total2017 = 0;
+            let Borough17 = 0;
+            let total2018 = 0;
+            let Borough18 = 0;
+            let total2019 = 0;
+            let Borough19 = 0;
+            let total2020 = 0;
+            let Borough20 = 0;
+            let total2021 = 0;
+            let Borough21 = 0;
+            let total2022 = 0;
+            let Borough22 = 0;
+            let percent00 = 0;
+            let percent01 = 0;
+            let percent02 = 0;
+            let percent03 = 0;
+            let percent04 = 0;
+            let percent05 = 0;
+            let percent06 = 0;
+            let percent07 = 0;
+            let percent08 = 0;
+            let percent09 = 0;
+            let percent10 = 0;
+            let percent11 = 0;
+            let percent12 = 0;
+            let percent13 = 0;
+            let percent14 = 0;
+            let percent15 = 0;
+            let percent16 = 0;
+            let percent17 = 0;
+            let percent18 = 0;
+            let percent19 = 0;
+            let percent20 = 0;
+            let percent21 = 0;
+            let percent22 = 0;
+
+
+            for(let i=0;i<licenseData.length;i++){
+                if(licenseData[i][0] == 2000 && licenseData[i][1] == boroOption)
+                Borough00 = Borough00 + 1;
+                if(licenseData[i][0] == 2001 && licenseData[i][1] == boroOption)
+                Borough01 = Borough01 + 1;
+                if(licenseData[i][0] == 2002 && licenseData[i][1] == boroOption)
+                Borough02 = Borough02 + 1;
+                if(licenseData[i][0] == 2003 && licenseData[i][1] == boroOption)
+                Borough03 = Borough03 + 1;
+                if(licenseData[i][0] == 2004 && licenseData[i][1] == boroOption)
+                Borough04 = Borough04 + 1;
+                if(licenseData[i][0] == 2005 && licenseData[i][1] == boroOption)
+                Borough05 = Borough05 + 1;
+                if(licenseData[i][0] == 2006 && licenseData[i][1] == boroOption)
+                Borough06 = Borough06 + 1;
+                if(licenseData[i][0] == 2007 && licenseData[i][1] == boroOption)
+                Borough07 = Borough07 + 1;
+                if(licenseData[i][0] == 2008 && licenseData[i][1] == boroOption)
+                Borough08 = Borough08 + 1;
+                if(licenseData[i][0] == 2009 && licenseData[i][1] == boroOption)
+                Borough09 = Borough09 + 1;
+                if(licenseData[i][0] == 2010 && licenseData[i][1] == boroOption)
+                Borough10 = Borough10 + 1;
+                if(licenseData[i][0] == 2011 && licenseData[i][1] == boroOption)
+                Borough11 = Borough11 + 1;
+                if(licenseData[i][0] == 2012 && licenseData[i][1] == boroOption)
+                Borough12 = Borough12 + 1;
+                if(licenseData[i][0] == 2013 && licenseData[i][1] == boroOption)
+                Borough13 = Borough13 + 1;
+                if(licenseData[i][0] == 2014 && licenseData[i][1] == boroOption)
+                Borough14 = Borough14 + 1;
+                if(licenseData[i][0] == 2015 && licenseData[i][1] == boroOption)
+                Borough15 = Borough15 + 1;
+                if(licenseData[i][0] == 2016 && licenseData[i][1] == boroOption)
+                Borough16 = Borough16 + 1;
+                if(licenseData[i][0] == 2017 && licenseData[i][1] == boroOption)
+                Borough17 = Borough17 + 1;
+                if(licenseData[i][0] == 2018 && licenseData[i][1] == boroOption)
+                Borough18 = Borough18 + 1;
+                if(licenseData[i][0] == 2019 && licenseData[i][1] == boroOption)
+                Borough19 = Borough19 + 1;
+                if(licenseData[i][0] == 2020 && licenseData[i][1] == boroOption)
+                Borough20 = Borough20 + 1;
+                if(licenseData[i][0] == 2021 && licenseData[i][1] == boroOption)
+                Borough21 = Borough21 + 1;
+                if(licenseData[i][0] == 2022 && licenseData[i][1] == boroOption)
+                Borough22 = Borough22 + 1;
+            }
+        
+            for(let i=0;i<licenseData.length;i++){
+                if(licenseData[i][0] == 2000)
+                total2000 = total2000 + 1;
+                if(licenseData[i][0] == 2001)
+                total2001 = total2001 + 1;
+                if(licenseData[i][0] == 2002)
+                total2002 = total2002 + 1;
+                if(licenseData[i][0] == 2003)
+                total2003 = total2003 + 1;
+                if(licenseData[i][0] == 2004)
+                total2004 = total2004 + 1;
+                if(licenseData[i][0] == 2005)
+                total2005 = total2005 + 1;
+                if(licenseData[i][0] == 2006)
+                total2006 = total2006 + 1;
+                if(licenseData[i][0] == 2007)
+                total2007 = total2007 + 1;
+                if(licenseData[i][0] == 2008)
+                total2008 = total2008 + 1;
+                if(licenseData[i][0] == 2009)
+                total2009 = total2009 + 1;
+                if(licenseData[i][0] == 2010)
+                total2010 = total2010 + 1;
+                if(licenseData[i][0] == 2011)
+                total2011 = total2011 + 1;
+                if(licenseData[i][0] == 2012)
+                total2012 = total2012 + 1;
+                if(licenseData[i][0] == 2013)
+                total2013 = total2013 + 1;
+                if(licenseData[i][0] == 2014)
+                total2014 = total2014 + 1;
+                if(licenseData[i][0] == 2015)
+                total2015 = total2015 + 1;
+                if(licenseData[i][0] == 2016)
+                total2016 = total2016 + 1;
+                if(licenseData[i][0] == 2017)
+                total2017 = total2017 + 1;
+                if(licenseData[i][0] == 2018)
+                total2018 = total2018 + 1;
+                if(licenseData[i][0] == 2019)
+                total2019 = total2019 + 1;
+                if(licenseData[i][0] == 2020)
+                total2020 = total2020 + 1;
+                if(licenseData[i][0] == 2021)
+                total2021 = total2021 + 1;
+                if(licenseData[i][0] == 2022)
+                total2022 = total2022 + 1;
+            }
+            console.log(total2015 + " " + Borough15 + " " + percent15)
+
+            percent00 = Borough00/total2000 * 100;
+            percent01 = Borough01/total2001 * 100;
+            percent02 = Borough02/total2002 * 100;
+            percent03 = Borough03/total2003 * 100;
+            percent04 = Borough04/total2004 * 100;
+            percent05 = Borough05/total2005 * 100;
+            percent06 = Borough06/total2006 * 100;
+            percent07 = Borough07/total2007 * 100;
+            percent08 = Borough08/total2008 * 100;
+            percent09 = Borough09/total2009 * 100;
+            percent10 = Borough10/total2010 * 100;
+            percent11 = Borough11/total2011 * 100;
+            percent12 = Borough12/total2012 * 100;
+            percent13 = Borough13/total2013 * 100;
+            percent14 = Borough14/total2014 * 100;
+            percent15 = Borough15/total2015 * 100;
+            percent16 = Borough16/total2016 * 100;
+            percent17 = Borough17/total2017 * 100;
+            percent18 = Borough18/total2018 * 100;
+            percent19 = Borough19/total2019 * 100;
+            percent20 = Borough20/total2020 * 100;
+            percent21 = Borough21/total2021 * 100;
+            percent22 = Borough22/total2022 * 100;
+
+            percent00 = percent00.toFixed(2)
+            percent01 = percent01.toFixed(2)
+            percent02 = percent02.toFixed(2)
+            percent03 = percent03.toFixed(2)
+            percent04 = percent04.toFixed(2)
+            percent05 = percent05.toFixed(2)
+            percent06 = percent06.toFixed(2)
+            percent07 = percent07.toFixed(2)
+            percent08 = percent08.toFixed(2)
+            percent09 = percent09.toFixed(2)
+            percent10 = percent10.toFixed(2)
+            percent11 = percent11.toFixed(2)
+            percent12 = percent12.toFixed(2)
+            percent13 = percent13.toFixed(2)
+            percent14 = percent14.toFixed(2)
+            percent15 = percent15.toFixed(2)
+            percent16 = percent16.toFixed(2)
+            percent17 = percent17.toFixed(2)
+            percent18 = percent18.toFixed(2)
+            percent19 = percent19.toFixed(2)
+            percent20 = percent20.toFixed(2)
+            percent21 = percent21.toFixed(2)
+            percent22 = percent22.toFixed(2)
+                        
+
+            console.log(percent22 + " " + Borough22 + " " + total2022)
+            
+            let imageurl = "https://image-charts.com/chart?"
+	        imageurl = imageurl + "chco=3072F3,ff0000,00ff00&"
+	        imageurl = imageurl + "chd=t:" + percent00 + "," + percent01 + "," +  percent02 + "," + percent03 + "," + percent04 + "," + percent05 + "," +  percent06 + "," + percent07 + "," + percent08 + "," + percent09 + "," +  percent10 + "," + percent11 + "," + percent12 + "," + percent13 + "," +  percent14 + "," + percent15 + "," + percent16 + "," + percent17 + "," +  percent18 + "," + percent19 + "," + percent20 + "," + percent21 + "," +  percent22 + "," + "&"
+	        imageurl = imageurl + "chdlp=t&"
+	        imageurl = imageurl + "chls=1,0,1&"
+	        imageurl = imageurl + "chs=900x500&"
+	        imageurl = imageurl + "cht=lc&"
+	        imageurl = imageurl + "chxt=x,y" + "&"
+            imageurl = imageurl + "chxr=0,0,23|1,0,100" + "&"
+            imageurl = imageurl + "chtt=" + "This is " + boroOption + "s+Annual+Tobacco+License+Acquisition+Rate"
+            console.log(imageurl)
+            $("#Chart2").html("<img src='" + imageurl + "'>");
+
+
+            })
+    }
+
+
+    $("#WelcomePage").show();
+    $("#APIbuttons").hide();
+    $("#Chart1Explan").hide();
+
+    $("#btn_1").click(function(){
+	    $("#WelcomePage").hide();
+	    $("#APIbuttons").show();
+    })
+    $('#btn_home').click(function(){
+        $("#WelcomePage").show();
+	    $("#APIbuttons").hide();
+    })
+
+    $("#btn_2").click(function(){
+        GetBoroughData();
+        sortDaBoro();
+        $('#Chart1Explan').show();
+    })
+
+    $("#btn_3").click(function(){
+        LicenseTrend()
+
+    })
+    </script>
+
+</html>
